@@ -1,0 +1,30 @@
+# ===============================================================
+#  YoriTest-Riscv 测试预期结果（halt code）
+#  格式：<bin 名>  <预期 halt code：0 = GOOD(PASS)，N = BAD code N(FAIL)>
+#  未列出的 bin 默认预期 0。
+# ===============================================================
+
+algo_arith     0
+algo_bits      0
+algo_fact      0
+algo_fib       0
+algo_gcd       0
+algo_matrix    0
+algo_prime     0
+algo_sort      0
+inst_addsub    0
+inst_branch    0
+inst_csr       0
+inst_div       0
+inst_jump      0
+inst_load      0
+inst_logic     0
+inst_lui_auipc 0
+inst_mul       0
+inst_shift     0
+inst_slt       0
+inst_store     0
+inst_sys       0
+inst_trap      0
+smoke          0
+smoke-fail     3

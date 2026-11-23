@@ -1,0 +1,13 @@
+/*
+
+!/.cargo/
+!/am/
+!/am-test/
+!/cpu-test/
+!/mkscript/
+!/.gitignore
+!/Cargo.toml
+!/Cargo.lock
+!/expected.list
+!/Makefile
+!/README.md

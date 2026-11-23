@@ -1,0 +1,3 @@
+# 默认目标：RV32IMA（不含 C 扩展，因 RV32C 尚无定向测试）。
+[build]
+target = "riscv32im-unknown-none-elf"
