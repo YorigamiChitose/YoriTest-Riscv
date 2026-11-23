@@ -1,0 +1,8 @@
+[package]
+name = "cpu-test"
+version = "0.1.0"
+edition = "2021"
+description = "无系统下的纯基础指令测试"
+
+[dependencies]
+am = { path = "../am" }
