@@ -1,5 +1,3 @@
-//! 冒泡排序，覆盖数组读写（lw/sw）、比较与嵌套循环。
-
 #![no_std]
 #![no_main]
 
@@ -45,7 +43,6 @@ pub extern "C" fn main() -> ! {
     check(is_sorted(&b), 3);
     check(b[0] == 2 && b[7] == 9, 4);
 
-    // 已有序数组不应被破坏
     let mut c: [u32; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
     bubble_sort(&mut c);
     check(c == [1, 2, 3, 4, 5, 6, 7, 8], 5);

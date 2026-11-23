@@ -1,14 +1,10 @@
-//! RTC 测试：读 RTC 微秒时间戳，在测试端解析为当前时间并输出 `yy-mm-dd hh-mm-ss`。
-
 #![no_std]
 #![no_main]
 
 use am::{halt, putchar, rtc_us};
 
-/// 时区偏移（秒）：UTC+8（北京时间）。
 const TZ_OFFSET_SEC: u32 = 8 * 3600;
 
-/// 补零输出一个无符号整数（宽度 width）。
 fn put_pad(n: u32, width: usize) {
     let mut buf = [0u8; 10];
     let mut i = 10;
@@ -30,7 +26,6 @@ fn put_pad(n: u32, width: usize) {
     }
 }
 
-/// 把自 1970-01-01 的天数转成 (year, month, day)，month/day 从 1 开始（civil_from_days）。
 fn civil_from_days(z: u32) -> (u32, u32, u32) {
     let z = z + 719468;
     let era = z / 146097;
@@ -47,7 +42,7 @@ fn civil_from_days(z: u32) -> (u32, u32, u32) {
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
-    // 微秒时间戳（UTC）→ 秒 → 加时区偏移
+
     let sec = (rtc_us() / 1_000_000) as u32 + TZ_OFFSET_SEC;
     let days = sec / 86400;
     let tod = sec % 86400;

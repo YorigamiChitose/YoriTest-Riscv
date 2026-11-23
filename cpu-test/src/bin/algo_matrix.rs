@@ -1,5 +1,3 @@
-//! 4x4 矩阵乘法，覆盖乘加、三重循环与二维数组索引。
-
 #![no_std]
 #![no_main]
 
@@ -40,11 +38,9 @@ pub extern "C" fn main() -> ! {
         [0, 0, 0, 1],
     ];
 
-    // 乘单位阵 = 自身
     let c = matmul(&a, &ident);
     check(c == a, 1);
 
-    // a * a 的若干元素（手工算得）
     let d = matmul(&a, &a);
     check(d[0][0] == 90, 2);
     check(d[0][3] == 120, 3);

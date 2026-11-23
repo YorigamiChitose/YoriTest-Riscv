@@ -1,7 +1,3 @@
-# YoriTest-Riscv 工作区根
-# am / cpu-test / am-test / os 四个 crate 平级（os 远期，暂未立项）。
-# 编译交 cargo，Makefile 仅作批处理编排。
-
 [workspace]
 resolver = "2"
 members = [
@@ -10,7 +6,6 @@ members = [
     "am-test",
 ]
 
-# 裸机环境统一 panic = abort（不依赖 unwinding 运行库）
 [profile.dev]
 panic = "abort"
 

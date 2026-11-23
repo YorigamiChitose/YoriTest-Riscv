@@ -1,5 +1,3 @@
-//! 串口测试：验证 `am::putchar` 能正确把字符输出到仿真器 stdout。
-
 #![no_std]
 #![no_main]
 
@@ -15,6 +13,6 @@ fn putstr(s: &str) {
 pub extern "C" fn main() -> ! {
     putstr("Hello, YoriCore!\n");
     putstr("UART test OK.\n");
-    // 正常退出
+
     halt(0);
 }
