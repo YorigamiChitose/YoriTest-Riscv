@@ -19,10 +19,3 @@ version = "0.1.0"
 dependencies = [
  "am",
 ]
-
-[[package]]
-name = "os"
-version = "0.1.0"
-dependencies = [
- "am",
-]
