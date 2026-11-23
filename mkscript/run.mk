@@ -4,7 +4,6 @@ run: bin
 	@bins="$(ALL)"; \
 	if [ -z "$$bins" ]; then \
 		bins=$$(find $(BUILD_DIR) -maxdepth 1 -name '*.bin' -printf '%f\n' | sed 's/\.bin$$//' | sort); \
-		bins=$$(for n in $$bins; do case " $(TEST_EXCLUDE_BINS) " in *" $$n "*) ;; *) echo $$n ;; esac; done); \
 	fi; \
 	pass=0; fail=0; rows=""; \
 	for b in $$bins; do \
@@ -30,7 +29,6 @@ difftest: bin
 	@bins="$(ALL)"; \
 	if [ -z "$$bins" ]; then \
 		bins=$$(find $(BUILD_DIR) -maxdepth 1 -name '*.bin' -printf '%f\n' | sed 's/\.bin$$//' | sort); \
-		bins=$$(for n in $$bins; do case " $(TEST_EXCLUDE_BINS) " in *" $$n "*) ;; *) echo $$n ;; esac; done); \
 	fi; \
 	pass=0; fail=0; rows=""; \
 	for b in $$bins; do \

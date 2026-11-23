@@ -2,8 +2,8 @@
 
 build:
 	@if [ -z "$(ALL)" ]; then \
-		echo "--- cargo build --release ($(TARGET)) ---"; \
-		cargo build --release || exit 1; \
+		echo "--- cargo build --release $(TEST_PKGS) ---"; \
+		cargo build --release $(TEST_PKGS) || exit 1; \
 	else \
 		for b in $(ALL); do \
 			echo "--- cargo build --release --bin $$b ---"; \
@@ -15,8 +15,7 @@ build:
 bin: build
 	@mkdir -p $(BUILD_DIR)
 	@if [ -z "$(ALL)" ]; then \
-		names=$$(find $(TARGET_DIR) -maxdepth 1 -type f -executable -printf '%f\n'); \
-		names=$$(for n in $$names; do case " $(TEST_EXCLUDE_BINS) " in *" $$n "*) ;; *) echo $$n ;; esac; done); \
+		names="$(TEST_BINS)"; \
 	else \
 		names="$(ALL)"; \
 	fi; \
