@@ -1,0 +1,8 @@
+[package]
+name = "am-test"
+version = "0.1.0"
+edition = "2021"
+description = "无系统下的 AM 高层测试"
+
+[dependencies]
+am = { path = "../am" }
