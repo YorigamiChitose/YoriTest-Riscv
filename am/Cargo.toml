@@ -1,0 +1,10 @@
+[package]
+name = "am"
+version = "0.1.0"
+edition = "2021"
+description = "YoriTest-Riscv 抽象机（AM）：唯一对接硬件的层"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
