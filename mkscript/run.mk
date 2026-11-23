@@ -30,16 +30,8 @@ difftest: bin
 	if [ -z "$$bins" ]; then \
 		bins=$$(find $(BUILD_DIR) -maxdepth 1 -name '*.bin' -printf '%f\n' | sed 's/\.bin$$//' | sort); \
 	fi; \
-	pass=0; fail=0; skip=0; rows=""; \
+	pass=0; fail=0; rows=""; \
 	for b in $$bins; do \
-		if [ -z "$(ALL)" ] && [ -n "$(DIFFTEST_SKIP_BINS)" ]; then \
-			case " $(DIFFTEST_SKIP_BINS) " in \
-				*" $$b "*) \
-					skip=$$((skip+1)); \
-					rows="$${rows}  $(C_YEL)[SKIP][impl-defined]$(C_OFF) $$b\n"; \
-					continue ;; \
-			esac; \
-		fi; \
 		printf '$(C_YEL)--- difftest %s ---$(C_OFF)\n' "$$b"; \
 		log=$$(env -u LD_LIBRARY_PATH $(SIM_BIN) -b --diff="$(REF_SO)" "$(BUILD_DIR)/$$b.bin" 2>&1); rc=$$?; \
 		printf '%s\n' "$$log"; \
@@ -55,4 +47,4 @@ difftest: bin
 	done; \
 	printf '\n$(C_BLU)=== difftest 汇总 ===$(C_OFF)\n'; \
 	printf '%b' "$${rows}"; \
-	printf '$(C_BLU)  总计 %d，通过 %d，失败 %d，跳过 %d$(C_OFF)\n' "$$((pass+fail))" "$$pass" "$$fail" "$$skip"
+	printf '$(C_BLU)  总计 %d，通过 %d，失败 %d$(C_OFF)\n' "$$((pass+fail))" "$$pass" "$$fail"
