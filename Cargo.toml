@@ -4,6 +4,7 @@ members = [
     "am",
     "cpu-test",
     "am-test",
+    "os",
 ]
 
 [profile.dev]

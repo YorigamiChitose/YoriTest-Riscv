@@ -34,3 +34,4 @@ inst_sys        0
 inst_trap       0
 smoke           0
 smoke-fail      3
+os             0

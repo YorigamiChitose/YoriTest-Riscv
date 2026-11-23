@@ -4,6 +4,7 @@
 !/am/
 !/am-test/
 !/cpu-test/
+!/os/
 !/mkscript/
 !/.gitignore
 !/Cargo.toml
