@@ -16,6 +16,7 @@ bin: build
 	@mkdir -p $(BUILD_DIR)
 	@if [ -z "$(ALL)" ]; then \
 		names=$$(find $(TARGET_DIR) -maxdepth 1 -type f -executable -printf '%f\n'); \
+		names=$$(for n in $$names; do case " $(TEST_EXCLUDE_BINS) " in *" $$n "*) ;; *) echo $$n ;; esac; done); \
 	else \
 		names="$(ALL)"; \
 	fi; \

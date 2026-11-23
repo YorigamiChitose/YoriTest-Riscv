@@ -4,8 +4,8 @@ members = [
     "am",
     "cpu-test",
     "am-test",
+    "os",
 ]
-exclude = ["os"]
 
 [profile.dev]
 panic = "abort"

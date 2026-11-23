@@ -40,6 +40,7 @@ fn test_sync() {
     }
 }
 
+#[cfg(not(feature = "difftest"))]
 fn test_time() {
     let t0 = time::now_us();
     time::wait_us(1000);
@@ -54,7 +55,11 @@ pub extern "C" fn main() -> ! {
     console::print("os selftest\n");
     test_heap();
     test_sync();
+    #[cfg(not(feature = "difftest"))]
     test_time();
+    #[cfg(not(feature = "difftest"))]
     console::print("heap/sync/time ok\n");
+    #[cfg(feature = "difftest")]
+    console::print("heap/sync ok\n");
     sched::init_and_start();
 }

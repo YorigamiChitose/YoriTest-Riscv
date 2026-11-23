@@ -12,5 +12,7 @@ REF_SO  ?= $(YCORE_DIR)/build/ref/riscv32-spike-so
 
 EXPECT_FILE := $(TOP_DIR)/expected.list
 
+TEST_EXCLUDE_BINS ?= os
+
 
 ALL ?=
