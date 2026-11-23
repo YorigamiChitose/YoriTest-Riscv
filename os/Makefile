@@ -1,32 +1,17 @@
-TARGET     := riscv32imac-unknown-none-elf
-TARGET_DIR := ../target/$(TARGET)/release
-BUILD_DIR  := build
-DIFF_TARGET_DIR := ../target/os-difftest
-OBJCOPY    := riscv64-unknown-elf-objcopy
-SIM_BIN    ?= ../../YoriCore-Rev/build/verilator/VSimTop
-REF_SO     ?= ../../YoriCore-Rev/build/ref/riscv32-spike-so
+include $(CURDIR)/mkscript/env.mk
+include $(CURDIR)/mkscript/config.mk
+include $(CURDIR)/mkscript/cargo.mk
+include $(CURDIR)/mkscript/run.mk
+include $(CURDIR)/mkscript/clean.mk
 
-.PHONY: all build bin run difftest clean
+.PHONY: help
 
-all: run
+help:
+	@printf '$(C_BLU)可用目标:$(C_OFF)\n'
+	@printf '  $(C_YEL)build$(C_OFF)     cargo build --release\n'
+	@printf '  $(C_YEL)bin$(C_OFF)       objcopy 转 .bin 到 build/\n'
+	@printf '  $(C_YEL)run$(C_OFF)       运行 OS 自检\n'
+	@printf '  $(C_YEL)difftest$(C_OFF)  OS 确定性 difftest\n'
+	@printf '  $(C_YEL)clean$(C_OFF)     清理构建产物\n'
 
-build:
-	cargo build --release
-
-bin: build
-	@mkdir -p $(BUILD_DIR)
-	$(OBJCOPY) -O binary $(TARGET_DIR)/os $(BUILD_DIR)/os.bin
-
-run: bin
-	env -u LD_LIBRARY_PATH $(SIM_BIN) -b $(BUILD_DIR)/os.bin
-
-difftest:
-	@test -f $(REF_SO) || { echo "missing ref: $(REF_SO)"; exit 1; }
-	CARGO_TARGET_DIR=$(DIFF_TARGET_DIR) cargo build --release --features difftest
-	@mkdir -p $(BUILD_DIR)
-	$(OBJCOPY) -O binary $(DIFF_TARGET_DIR)/$(TARGET)/release/os $(BUILD_DIR)/os-difftest.bin
-	env -u LD_LIBRARY_PATH $(SIM_BIN) -b --diff=$(REF_SO) $(BUILD_DIR)/os-difftest.bin
-
-clean:
-	cargo clean -p os
-	rm -rf $(BUILD_DIR) $(DIFF_TARGET_DIR)
+.DEFAULT_GOAL := help

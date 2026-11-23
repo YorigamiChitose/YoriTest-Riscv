@@ -1,0 +1,9 @@
+TOP_DIR         := $(CURDIR)
+BUILD_DIR       := $(TOP_DIR)/build
+ROOT_DIR        := $(TOP_DIR)/..
+TARGET          := riscv32imac-unknown-none-elf
+TARGET_DIR      := $(ROOT_DIR)/target/$(TARGET)/release
+DIFF_TARGET_DIR := $(ROOT_DIR)/target/os-difftest
+OBJCOPY         := riscv64-unknown-elf-objcopy
+SIM_BIN         ?= $(ROOT_DIR)/../YoriCore-Rev/build/verilator/VSimTop
+REF_SO          ?= $(ROOT_DIR)/../YoriCore-Rev/build/ref/riscv32-spike-so
