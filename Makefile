@@ -1,8 +1,3 @@
-# ===============================================================
-#  YoriTest-Riscv 顶层批处理入口
-#  编译交 cargo，本文件只编排流程（build → bin → run/difftest）。
-# ===============================================================
-
 include $(CURDIR)/mkscript/env.mk
 include $(CURDIR)/mkscript/config.mk
 include $(CURDIR)/mkscript/cargo.mk

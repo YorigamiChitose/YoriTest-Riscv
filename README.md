@@ -1,6 +1,6 @@
 # YoriTest-Riscv 测试框架方案
 
-为 RISC-V 处理器 **YoriCore-Rev**（RV32IMA + Zicsr + Zifencei）提供的一整套测试程序框架。
+为 RISC-V 处理器 **YoriCore-Rev**（RV32IMA + Zicsr + Zifencei + RV32C）提供的一整套测试程序框架。
 采用 Rust（`no_std` 裸机）+ Makefile 构建，仓库间按「独立 + 产物拷贝」协作。
 
 ---
@@ -18,13 +18,13 @@ YoriCore-Rev 当前是 NEMU 式 C++ monitor + Spike 逐指令 difftest，仓库�
 
 ## 2. 项目结构（cargo workspace）
 
-整个项目是一个 cargo workspace，`am`、`cpu-test`、`am-test`、`os` 四个 crate 在文件层级**平级**，
+整个项目是一个 cargo workspace，`am`、`cpu-test`、`am-test`、`os` 四个 crate 在文件层级**平级**（`os` 远期），
 由工作区根 `Cargo.toml` 统一管理。`am` 虽为基座，但只是普通成员 crate，并非其他 crate 的上级目录。
 
 | crate | 角色 | 状态 |
 |-------|------|------|
 | `am/` | 通用库（抽象机 + 构建基座），唯一对接硬件的层（lib crate） | 当前 |
-| `cpu-test/` | 无系统下的纯基础指令测试，依赖 `am`（bin crate，多 `[[bin]]`） | 当前 |
+| `cpu-test/` | 无系统下的纯基础指令测试，含 RV32C 专项，依赖 `am`（bin crate，多 `[[bin]]`） | 当前 |
 | `am-test/` | 无系统下的 AM 高层测试，依赖 `am`（bin crate） | 当前 |
 | `os/` | 操作系统（OS 本体 + OS 上的应用） | 远期 |
 
@@ -78,7 +78,7 @@ Rust 写裸机最大的坑集中在启动与运行环境，全部收敛到 `am`�
 3. 链接脚本 `.lds`：定义入口 `_start`、`.text/.rodata/.data/.bss` 布局、栈顶、bss 清零
 4. 启动 `_start`：清 bss → 设置栈指针 → 调用 `main`
 5. 全局 allocator（`#[global_allocator]`，供需要堆的 am-test 使用）
-6. 目标 triple：`riscv32im-unknown-none-elf`（不含 `c`，因 RV32C 尚无定向测试）
+6. 目标 triple：默认 `riscv32imac-unknown-none-elf`（默认启用 C）；所有 crate、所有指令测试统一使用该目标，不再区分 C / 非 C
 
 > `printf!`/`println!` 基于 `core::fmt`，需由 `am` 提供底层 `putchar` 写串口实现。
 
@@ -111,9 +111,12 @@ Rust 写裸机最大的坑集中在启动与运行环境，全部收敛到 `am`�
 
 ## 7. cpu-test 与 am-test 分工
 
-- **cpu-test**：逐条验证 RV32IMA + Zicsr + Zifencei 各指令的语义与边界
+- **cpu-test**：逐条验证 RV32IMA + Zicsr + Zifencei + RV32C 各指令的语义与边界
   （算术/逻辑/移位/分支/跳转/load-store/乘除/CSR/系统指令，含符号扩展、字节使能、除零、溢出等边界）。
   每条测试独立成一个 `.bin`，通过 `am::halt` 退出。
+- **cpu-test 中的 RV32C 专项**：用 `.option rvc` 在汇编里显式嵌入 16 位指令，
+  覆盖 C.ADDI/ADDI4SPN/ADDI16SP/LI/LUI/ALU/移位/访存/跳转/分支/变长取指；
+  每个 bin 的 halt code 是 6 位失败位图。
 - **am-test**：验证 `am` 库自身正确性（halt、串口、堆、格式化输出），
   以及用 `am` 写的高层功能（字符串、内存分配等），作为「AM 正确性」的回归。
 
@@ -131,9 +134,9 @@ Rust 写裸机最大的坑集中在启动与运行环境，全部收敛到 `am`�
 
 - 方式：**cargo workspace**。工作区根 `Cargo.toml` 声明 `[workspace] members`，
   `cpu-test`/`am-test`/`os` 通过 workspace 内路径依赖 `am`（`am = { path = "../am" }`）。
-- 编译由 cargo 负责（`cargo build --target riscv32im-unknown-none-elf`），
+- 编译由 cargo 负责（默认 `cargo build --release` 使用 `riscv32imac-unknown-none-elf`，所有 crate/测试统一带 C），
   `am` 产出 `libam.rlib`，其余 crate 自动链接，无需手动拷贝产物。
-- 最终各 crate 产出 `.bin` 镜像，加载到 YoriCore-Rev（`make run IMG=...` / difftest）。
+- 最终各 crate 产出 `.bin` 镜像，加载到 YoriCore-Rev（`make run ALL=...` / `make difftest ALL=...`）。
 
 ---
 
@@ -142,7 +145,7 @@ Rust 写裸机最大的坑集中在启动与运行环境，全部收敛到 `am`�
 Makefile **不负责编译**（编译交给 cargo），而是作为批处理脚本驱动整个项目的自动化：
 
 - 顶层 `Makefile` 聚合常用目标：`make build`（调 `cargo build`）、
-  `make test`（编译 + 逐镜像加载运行 + 汇总 PASS/FAIL）、`make clean` 等。
+  `make run`（编译 + 逐镜像加载运行 + 汇总 PASS/FAIL）、`make clean` 等。
 - 各子项目内部由 cargo 负责编译（`Cargo.toml` 定义依赖与 target），Makefile 只调用 cargo 命令。
 - 镜像转换（`.elf` → `.bin`，`objcopy`）与运行/对比（difftest）由 Makefile 编排。
 - 约定沿用 YoriCore-Rev 风格：`mkscript/*.mk` 分片段 + `include` 聚合 + `build/` 产物目录。
@@ -153,7 +156,7 @@ Makefile **不负责编译**（编译交给 cargo），而是作为批处理脚�
 
 ```
 YoriTest-Riscv/
-├── Cargo.toml           # workspace 根（[workspace] members = ["am","cpu-test","am-test","os"]）
+├── Cargo.toml           # workspace 根（members 含 am/cpu-test/am-test）
 ├── Makefile             # 批处理脚本（驱动 cargo + 运行测试）
 ├── mkscript/            # 顶层 make 片段（env.mk 等）
 ├── README.md            # 本方案文档
@@ -163,7 +166,7 @@ YoriTest-Riscv/
 │   └── link/            # 链接脚本 .lds
 ├── cpu-test/            # 指令测试（bin crate，多 [[bin]]）
 │   ├── Cargo.toml
-│   └── src/             # 每条指令/每类指令一个 bin 源文件
+│   └── src/             # 每条指令/每类指令一个 bin 源文件（含 c_* 专项）
 ├── am-test/             # AM 高层测试（bin crate）
 │   ├── Cargo.toml
 │   └── src/
@@ -181,7 +184,7 @@ YoriTest-Riscv/
 | cpu-test 是否依赖 am | 依赖 | 硬件交互收敛到 am，避免重复；am 提供最小可信启动/halt 规避循环依赖 |
 | OS 建立时机 | 远期 | 当前核无 S/U + MMU + 中断，OS 无法运行 |
 | 项目管理方式 | cargo workspace（4 crate 平级） | 依赖与编译统一由 cargo 管理，Makefile 仅作批处理脚本 |
-| 目标 triple | `riscv32im-unknown-none-elf` | 核为 RV32IMA+Zicsr+Zifencei，RV32C 未验证故不含 `c` |
+| 目标 triple | `riscv32imac-unknown-none-elf` | 所有 crate、所有指令测试统一默认带 C，不做 C / 非 C 区分 |
 | 构建基座位置 | 收敛进 `am` | 避免仓库碎片化，am 兼任通用库 + 构建基座 |
 
 ---
@@ -189,6 +192,6 @@ YoriTest-Riscv/
 ## 13. 实施顺序（建议）
 
 1. **am 仓库骨架**：链接脚本、启动、`#[panic_handler]`、halt/串口 API、Makefile，产出一个可 halt 的最小镜像打通链路。
-2. **cpu-test**：先落 2~3 条指令测试跑通「编译 → 链接 am → 加载 → difftest」闭环，再铺开全部指令。
+2. **cpu-test**：先落 2~3 条指令测试跑通「编译 → 链接 am → 加载 → difftest」闭环，再铺开全部指令；RV32C 专项也放在 cpu-test 内。
 3. **am-test**：验证 am 的 halt/串口/堆/格式化输出。
 4. **os**：待核演进后再立项。
