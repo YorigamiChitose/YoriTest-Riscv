@@ -34,3 +34,12 @@ inst_sys        0
 inst_trap       0
 smoke           0
 smoke-fail      3
+cte_timer        0
+cte_timer_mret   0
+cte_plic         0
+smode_csr        0
+smode_delegate_ecall 0
+smode_timer      0
+smode_external   0
+smode_sret      0
+smode_illegal_mcsr 0

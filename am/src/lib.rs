@@ -6,7 +6,7 @@ pub const HALT_ADDR: usize = 0xF000_0000;
 
 pub const SERIAL_PORT: usize = 0x1000_0000;
 
-pub const RTC_ADDR: usize = 0x0200_B000;
+pub const RTC_ADDR: usize = 0x0010_1000;
 
 #[no_mangle]
 pub extern "C" fn halt(code: u32) -> ! {
