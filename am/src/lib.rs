@@ -7,6 +7,7 @@ pub const HALT_ADDR: usize = 0xF000_0000;
 pub const SERIAL_PORT: usize = 0x1000_0000;
 
 pub const RTC_ADDR: usize = 0x0010_1000;
+pub const CLINT_ADDR: usize = 0x0200_0000;
 
 #[no_mangle]
 pub extern "C" fn halt(code: u32) -> ! {
@@ -51,6 +52,31 @@ pub fn putchar(c: u8) {
     }
 }
 
+pub fn mtime() -> u64 {
+    unsafe {
+        let lo = core::ptr::read_volatile((CLINT_ADDR + 0xbff8) as *const u32) as u64;
+        let hi = core::ptr::read_volatile((CLINT_ADDR + 0xbffc) as *const u32) as u64;
+        (hi << 32) | lo
+    }
+}
+
+pub fn timer_start(ticks: u64) {
+    let target = mtime().wrapping_add(ticks);
+    unsafe {
+        core::ptr::write_volatile((CLINT_ADDR + 0x4000) as *mut u32, target as u32);
+        core::ptr::write_volatile((CLINT_ADDR + 0x4004) as *mut u32, (target >> 32) as u32);
+        core::arch::asm!("csrs mie, {}", in(reg) 0x80u32);
+    }
+}
+
+pub fn timer_stop() {
+    unsafe {
+        core::ptr::write_volatile((CLINT_ADDR + 0x4000) as *mut u32, 0xffff_ffff);
+        core::ptr::write_volatile((CLINT_ADDR + 0x4004) as *mut u32, 0xffff_ffff);
+        core::arch::asm!("csrc mie, {}", in(reg) 0x80u32);
+    }
+}
+
 pub fn rtc_us() -> u64 {
     unsafe {
         let lo = core::ptr::read_volatile(RTC_ADDR as *const u32) as u64;
@@ -65,11 +91,13 @@ pub enum Event {
     Error = 0,
     Yield = 1,
     Syscall = 2,
+    Timer = 3,
 }
 
 const MCAUSE_ECALL_M: usize = 11;
+const MCAUSE_TIMER: usize = 0x8000_0007;
 
-const MSTATUS_INIT: usize = 0x1800;
+const MSTATUS_INIT: usize = 0x1880;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -107,6 +135,7 @@ pub fn init_trap(handler: EventHandler) {
         let f: unsafe extern "C" fn() = am_trap_entry;
         let entry = f as usize;
         core::arch::asm!("csrw mtvec, {}", in(reg) entry);
+        core::arch::asm!("csrs mstatus, {}", in(reg) 0x8u32);
     }
 }
 
@@ -141,6 +170,8 @@ extern "C" fn am_trap_handler(c: *mut Context) -> *mut Context {
             } else {
                 Event::Syscall
             }
+        } else if ctx.mcause == MCAUSE_TIMER {
+            Event::Timer
         } else {
             Event::Error
         };
@@ -148,6 +179,7 @@ extern "C" fn am_trap_handler(c: *mut Context) -> *mut Context {
         if ctx.mcause == MCAUSE_ECALL_M {
             ctx.mepc += 4;
         }
+        ctx.mstatus |= 0x80;
         match USER_HANDLER {
             Some(h) => h(event, c),
             None => c,
@@ -241,6 +273,7 @@ am_trap_entry:
     mv   sp, a0
 
     lw   t1, 132(sp)
+    ori  t1, t1, 128
     lw   t2, 136(sp)
     csrw mstatus, t1
     csrw mepc, t2

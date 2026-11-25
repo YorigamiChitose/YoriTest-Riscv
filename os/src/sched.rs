@@ -4,6 +4,7 @@ use crate::{console, time};
 
 const MAX_TASKS: usize = 3;
 const STACK_SIZE: usize = 4096;
+const TICK_CYCLES: u64 = 5000;
 
 const READY: u8 = 0;
 const SLEEPING: u8 = 2;
@@ -19,6 +20,7 @@ static mut STATE: [u8; MAX_TASKS] = [READY; MAX_TASKS];
 static mut WAKE: [u64; MAX_TASKS] = [0; MAX_TASKS];
 static mut CURRENT: usize = MAX_TASKS;
 static mut EXIT_CODE: u32 = 0;
+static mut TIMER_TICKS: u32 = 0;
 
 extern "C" fn task_a(_: usize) {
     let msg = b"A";
@@ -73,6 +75,7 @@ pub fn init_and_start() -> ! {
         }
         CURRENT = MAX_TASKS;
         am::init_trap(schedule);
+        am::timer_start(TICK_CYCLES);
         am::yield_now();
     }
     am::halt(0)
@@ -88,6 +91,15 @@ extern "C" fn schedule(ev: Event, prev: *mut Context) -> *mut Context {
                 switch(prev)
             }
             Event::Syscall => handle_syscall(prev),
+            Event::Timer => {
+                let t = core::ptr::read_volatile(core::ptr::addr_of!(TIMER_TICKS));
+                core::ptr::write_volatile(core::ptr::addr_of_mut!(TIMER_TICKS), t.wrapping_add(1));
+                if CURRENT < MAX_TASKS {
+                    STATE[CURRENT] = READY;
+                }
+                am::timer_start(TICK_CYCLES);
+                switch(prev)
+            }
             Event::Error => am::halt(1),
         }
     }
@@ -133,6 +145,10 @@ fn pick_next() -> usize {
             }
             if !sleeping {
                 if EXIT_CODE == 0 {
+                    let ticks = core::ptr::read_volatile(core::ptr::addr_of!(TIMER_TICKS));
+                    if ticks == 0 {
+                        am::halt(50);
+                    }
                     console::print("\nos selftest pass\n");
                 } else {
                     console::print("\nos selftest fail: ");
