@@ -6,6 +6,3 @@ edition = "2021"
 [dependencies]
 am = { path = "../am" }
 
-[features]
-difftest = []
-

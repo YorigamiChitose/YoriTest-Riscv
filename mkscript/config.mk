@@ -8,7 +8,6 @@ OBJCOPY    := riscv64-unknown-elf-objcopy
 YCORE_DIR ?= $(TOP_DIR)/../YoriCore-Rev
 
 SIM_BIN ?= $(YCORE_DIR)/build/verilator/VSimTop
-REF_SO  ?= $(YCORE_DIR)/build/ref/riscv32-spike-so
 
 EXPECT_FILE := $(TOP_DIR)/expected.list
 
@@ -16,6 +15,5 @@ TEST_PKGS := -p am -p cpu-test -p am-test
 TEST_BINS := $(notdir $(basename $(wildcard $(TOP_DIR)/cpu-test/src/bin/*.rs) $(wildcard $(TOP_DIR)/am-test/src/bin/*.rs)))
 
 OS_BUILD_DIR       := $(BUILD_DIR)/os
-OS_DIFF_TARGET_DIR := $(TOP_DIR)/target/os-difftest
 
 ALL ?=

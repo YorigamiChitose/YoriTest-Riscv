@@ -42,7 +42,6 @@ extern "C" fn task_b(_: usize) {
     if sys_write(msg.as_ptr(), 1) != 1 {
         sys_exit(11);
     }
-    #[cfg(not(feature = "difftest"))]
     sys_sleep(1000);
     if sys_write(msg.as_ptr(), 1) != 1 {
         sys_exit(11);

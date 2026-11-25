@@ -43,3 +43,4 @@ smode_timer      0
 smode_external   0
 smode_sret      0
 smode_illegal_mcsr 0
+csr_ro_write    0
