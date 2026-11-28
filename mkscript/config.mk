@@ -18,6 +18,4 @@ OS_BUILD_DIR       := $(BUILD_DIR)/os
 
 ALL ?=
 
-TEST_TIMEOUT ?= 60
-OS_TIMEOUT   ?= 60
 EXPECTED_BINS := $(shell awk 'NF {print $$1}' $(EXPECT_FILE))

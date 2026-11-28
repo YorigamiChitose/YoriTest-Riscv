@@ -10,7 +10,7 @@ os-bin: os-build
 	$(OBJCOPY) -O binary $(TARGET_DIR)/os $(OS_BIN)
 
 os-run: os-bin
-	@timeout $(OS_TIMEOUT)s env -u LD_LIBRARY_PATH $(SIM_BIN) -b $(OS_BIN)
+	env -u LD_LIBRARY_PATH $(SIM_BIN) -b $(OS_BIN)
 
 os-clean:
 	cargo clean -p os

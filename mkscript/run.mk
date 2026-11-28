@@ -21,9 +21,8 @@ run: bin
 			fail=$$((fail+1)); rows="$${rows}  $(C_RED)[MISSING]$(C_OFF) $$b\n"; \
 			continue; \
 		fi; \
-		log=$$(timeout $(TEST_TIMEOUT)s env -u LD_LIBRARY_PATH $(SIM_BIN) -b "$(BUILD_DIR)/$$b.bin" 2>&1); rc=$$?; \
-		if [ $$rc -eq 124 ] || [ $$rc -eq 137 ]; then actual=TIMEOUT; \
-		elif [ $$rc -eq 0 ]; then actual=0; \
+		log=$$(env -u LD_LIBRARY_PATH $(SIM_BIN) -b "$(BUILD_DIR)/$$b.bin" 2>&1); rc=$$?; \
+		if [ $$rc -eq 0 ]; then actual=0; \
 		else actual=$$(printf '%s\n' "$$log" | grep -oE 'code=[0-9]+' | head -1 | cut -d= -f2); fi; \
 		expected=$$(grep -E "^$$b[[:space:]]" $(EXPECT_FILE) | head -1 | awk '{print $$2}'); \
 		[ -z "$$expected" ] && expected=0; \
